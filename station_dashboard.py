@@ -154,11 +154,11 @@ def main():
                 st.session_state.stations_data = load_location_data(LOCATION_FILE)
                 st.session_state.data_df = load_data_file(DATA_FILE) 
                 
-            if st.session_state.stations_data is not None and st.session_state.data_df is not None:
-                # st.success(f"✓ Successfully loaded data for {len(st.session_state.stations_data)} stations.")
-            else:
-                st.error("Failed to read data files even though they exist.")
-                st.stop()
+            # if st.session_state.stations_data is not None and st.session_state.data_df is not None:
+            #     # st.success(f"✓ Successfully loaded data for {len(st.session_state.stations_data)} stations.")
+            # else:
+            #     st.error("Failed to read data files even though they exist.")
+            #     st.stop()
         else:
             st.error(f"""
             ⚠️ Data files not found!
@@ -265,6 +265,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

@@ -155,7 +155,7 @@ def main():
                 st.session_state.data_df = load_data_file(DATA_FILE) 
                 
             if st.session_state.stations_data is not None and st.session_state.data_df is not None:
-                st.success(f"✓ Successfully loaded data for {len(st.session_state.stations_data)} stations.")
+                # st.success(f"✓ Successfully loaded data for {len(st.session_state.stations_data)} stations.")
             else:
                 st.error("Failed to read data files even though they exist.")
                 st.stop()
@@ -201,11 +201,7 @@ def main():
     if st.session_state.stations_data is not None:
         
         # Show map or detail view
-        if st.session_state.selected_station is None:
-            
-            # 📌 ADJUSTMENT 1 & 2: Moved metrics to the very top and established a column for map size.
-            st.header("📍 Station Locations")
-            
+        if st.session_state.selected_station is None:            
             # Metrics (now at the top of the main area)
             col1, col2, col3 = st.columns(3)
             with col1:
@@ -220,7 +216,8 @@ def main():
                     st.metric("Active Stations", "N/A")
             with col3:
                 st.metric("Dashboard Date", datetime.now().strftime("%Y-%m-%d"))
-            
+                        # 📌 ADJUSTMENT 1 & 2: Moved metrics to the very top and established a column for map size.
+            st.header("📍 Station Locations")
             st.markdown("---")
             
             # Map View
@@ -268,6 +265,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

@@ -114,7 +114,7 @@ def create_map(stations_df):
     # Create map with decreased zoom (zoomed out)
     m = folium.Map(
         location=[center_lat, center_lon],
-        zoom_start=8,  # ZOOM ADJUSTMENT: Changed from 10 to 8 (zoomed out)
+        zoom_start=6,  # ZOOM ADJUSTMENT: Changed from 10 to 8 (zoomed out)
         tiles='OpenStreetMap'
     )
     
@@ -268,6 +268,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

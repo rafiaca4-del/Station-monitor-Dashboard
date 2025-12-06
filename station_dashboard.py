@@ -225,7 +225,7 @@ def main():
             
             # Map View
             # Using st.columns to constrain the map's width to roughly 40% of the main area.
-            map_col, spacer_col = st.columns([4, 6]) # 40% width for the map, 60% spacer
+            map_col, spacer_col = st.columns([10, 5]) # 40% width for the map, 60% spacer
             
             with map_col:
                 # Create and display map
@@ -268,3 +268,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -114,7 +114,7 @@ def create_map(stations_df):
     # Create map with decreased zoom (zoomed out)
     m = folium.Map(
         location=[center_lat, center_lon],
-        zoom_start=6,  # ZOOM ADJUSTMENT: Changed from 10 to 8 (zoomed out)
+        zoom_start=7,  # ZOOM ADJUSTMENT: Changed from 10 to 8 (zoomed out)
         tiles='OpenStreetMap'
     )
     
@@ -225,7 +225,7 @@ def main():
             
             # Map View
             # Using st.columns to constrain the map's width to roughly 40% of the main area.
-            map_col, spacer_col = st.columns([16, 8]) # 40% width for the map, 60% spacer
+            map_col, spacer_col = st.columns([12, 6]) # 40% width for the map, 60% spacer
             
             with map_col:
                 # Create and display map
@@ -233,7 +233,7 @@ def main():
                 if station_map:
                     # Map height reduced to make it appear smaller/40% area of the screen
                     # st.subheader("Interactive Map")
-                    folium_static(station_map, width=1600, height=1000)
+                    folium_static(station_map, width=1200, height=800)
             # The spacer_col is empty, achieving the 40% width effect.
         
         else:
@@ -268,6 +268,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

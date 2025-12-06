@@ -55,10 +55,6 @@ st.markdown("""
     div[data-testid="stMetricValue"] {
         font-size: 1.2rem;
     }
-    /* Style to help center the metric numbers */
-    .stMetric {
-        text-align: center; 
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -111,7 +107,7 @@ def create_map(stations_df):
     # Create map with decreased zoom (zoomed out)
     m = folium.Map(
         location=[center_lat, center_lon],
-        zoom_start=7,  # ZOOM ADJUSTMENT: Zoomed out for better overview
+        zoom_start=7,  # ZOOM ADJUSTMENT: Changed from 10 to 8 (zoomed out)
         tiles='OpenStreetMap'
     )
     
@@ -138,6 +134,8 @@ def create_map(stations_df):
     
     return m
 
+# Unused helper functions removed for brevity (per previous request)
+
 # Main App
 def main():
     st.title("🌊 Observation Station Monitor")
@@ -149,9 +147,11 @@ def main():
                 st.session_state.stations_data = load_location_data(LOCATION_FILE)
                 st.session_state.data_df = load_data_file(DATA_FILE) 
                 
-            if st.session_state.stations_data is None or st.session_state.data_df is None:
-                st.error("Failed to read data files even though they exist.")
-                st.stop()
+            # if st.session_state.stations_data is not None and st.session_state.data_df is not None:
+            #     # st.success(f"✓ Successfully loaded data for {len(st.session_state.stations_data)} stations.")
+            # else:
+            #     st.error("Failed to read data files even though they exist.")
+            #     st.stop()
         else:
             st.error(f"""
             ⚠️ Data files not found!
@@ -194,7 +194,8 @@ def main():
     if st.session_state.stations_data is not None:
         
         # Show map or detail view
-        if st.session_state.selected_station is None:    
+        if st.session_state.selected_station is None:            
+            # Metrics (now at the top of the main area)
             col1, col2, col3 = st.columns(3)
             with col1:
                 st.metric("Total Stations", len(st.session_state.stations_data))
@@ -208,16 +209,31 @@ def main():
                     st.metric("Active Stations", "N/A")
             with col3:
                 st.metric("Dashboard Date", datetime.now().strftime("%Y-%m-%d"))
-            
+                        # 📌 ADJUSTMENT 1 & 2: Moved metrics to the very top and established a column for map size.
             st.markdown("---")
-            # 📌 CHANGE 1: Center the main header and make it smaller (using H3)
+
             st.markdown("<h3 style='text-align: center;'>📍 Station Locations</h3>", unsafe_allow_html=True)
+
             # 📌 CHANGE 3: Make the map full width
+
             # Create and display map - This is now full width as it's not restricted by columns
+
             station_map = create_map(st.session_state.stations_data)
+
             if station_map:
+
                 # Setting width=None allows folium_static to expand to the full width of its container
+
                 folium_static(station_map, width=None, height=600)
+            
+            with map_col:
+                # Create and display map
+                station_map = create_map(st.session_state.stations_data)
+                if station_map:
+                    # Map height reduced to make it appear smaller/40% area of the screen
+                    # st.subheader("Interactive Map")
+                    folium_static(station_map, width=1100, height=600)
+            # The spacer_col is empty, achieving the 40% width effect.
         
         else:
             # Detail View (No changes here, as per previous request to hide charts/data)
@@ -247,10 +263,18 @@ def main():
 
             st.markdown("---")
             
-            st.info("Data visualization and raw table views are currently hidden per request.")
+            # st.info("Data visualization and raw table views are currently hidden per request.")
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
 
 
 

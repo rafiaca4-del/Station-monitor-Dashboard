@@ -33,9 +33,9 @@ st.markdown("""
     }
     .station-card {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        padding: 15px;
+        padding: 10px;
         border-radius: 8px;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
         border-left: 4px solid #3498db;
         cursor: pointer;
     }
@@ -217,9 +217,8 @@ def main():
             with col3:
                 st.metric("Dashboard Date", datetime.now().strftime("%Y-%m-%d"))
                         # 📌 ADJUSTMENT 1 & 2: Moved metrics to the very top and established a column for map size.
-            st.header("📍 Station Locations")
             st.markdown("---")
-            
+            st.header("📍 Station Locations")
             # Map View
             # Using st.columns to constrain the map's width to roughly 40% of the main area.
             map_col, spacer_col = st.columns([16, 8]) # 40% width for the map, 60% spacer
@@ -261,10 +260,11 @@ def main():
 
             st.markdown("---")
             
-            st.info("Data visualization and raw table views are currently hidden per request.")
+            # st.info("Data visualization and raw table views are currently hidden per request.")
 
 if __name__ == "__main__":
     main()
+
 
 
 

@@ -194,32 +194,28 @@ def main():
     if st.session_state.stations_data is not None:
         
         # Show map or detail view
-        if st.session_state.selected_station is None:
-            
-            # 📌 CHANGE 1: Center the main header and make it smaller (using H3)
-            st.markdown("<h3 style='text-align: center;'>📍 Station Locations</h3>", unsafe_allow_html=True)
-            
+        if st.session_state.selected_station is None:    
             # 📌 CHANGE 2: Center the metrics by using a wider column for centering (1 part left, 3 parts metrics, 1 part right)
             col_left_spacer, col_metrics, col_right_spacer = st.columns([1, 3, 1])
-
-            with col_metrics:
-                # Metrics (now at the top of the main area and centered within this block)
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("Total Stations", len(st.session_state.stations_data))
-                with col2:
-                    if 'Status' in st.session_state.stations_data.columns:
-                        active_count = len(st.session_state.stations_data[
-                            st.session_state.stations_data['Status'].astype(str).str.lower() == 'active'
-                        ])
-                        st.metric("Active Stations", active_count)
-                    else:
-                        st.metric("Active Stations", "N/A")
-                with col3:
-                    st.metric("Dashboard Date", datetime.now().strftime("%Y-%m-%d"))
+# Station details
+            col1, col2, col3, col4, col5, col6 = st.columns(6)
+            
+            with col1:
+                st.metric("Station ID", station.get('Station ID', 'N/A'))
+            with col2:
+                st.metric("Type", station.get('Type', 'N/A'))
+            with col3:
+                st.metric("Latitude", f"{station.get('Lat', 'N/A'):.4f}" if pd.notna(station.get('Lat')) else 'N/A')
+            with col4:
+                st.metric("Longitude", f"{station.get('Lon', 'N/A'):.4f}" if pd.notna(station.get('Lon')) else 'N/A')
+            with col5:
+                st.metric("Status", station.get('Status', 'N/A'))
+            with col6:
+                st.metric("Last Update", station.get('Last Update', 'N/A'))
             
             st.markdown("---")
-            
+            # 📌 CHANGE 1: Center the main header and make it smaller (using H3)
+            st.markdown("<h3 style='text-align: center;'>📍 Station Locations</h3>", unsafe_allow_html=True)
             # 📌 CHANGE 3: Make the map full width
             # Create and display map - This is now full width as it's not restricted by columns
             station_map = create_map(st.session_state.stations_data)
@@ -259,3 +255,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

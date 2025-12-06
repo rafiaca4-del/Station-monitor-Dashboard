@@ -197,21 +197,19 @@ def main():
         if st.session_state.selected_station is None:    
             # 📌 CHANGE 2: Center the metrics by using a wider column for centering (1 part left, 3 parts metrics, 1 part right)
             col_left_spacer, col_metrics, col_right_spacer = st.columns([1, 3, 1])
-# Station details
-            col1, col2, col3, col4, col5, col6 = st.columns(6)
-            
+ col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("Station ID", station.get('Station ID', 'N/A'))
+                st.metric("Total Stations", len(st.session_state.stations_data))
             with col2:
-                st.metric("Type", station.get('Type', 'N/A'))
+                if 'Status' in st.session_state.stations_data.columns:
+                    active_count = len(st.session_state.stations_data[
+                        st.session_state.stations_data['Status'].astype(str).str.lower() == 'active'
+                    ])
+                    st.metric("Active Stations", active_count)
+                else:
+                    st.metric("Active Stations", "N/A")
             with col3:
-                st.metric("Latitude", f"{station.get('Lat', 'N/A'):.4f}" if pd.notna(station.get('Lat')) else 'N/A')
-            with col4:
-                st.metric("Longitude", f"{station.get('Lon', 'N/A'):.4f}" if pd.notna(station.get('Lon')) else 'N/A')
-            with col5:
-                st.metric("Status", station.get('Status', 'N/A'))
-            with col6:
-                st.metric("Last Update", station.get('Last Update', 'N/A'))
+                st.metric("Dashboard Date", datetime.now().strftime("%Y-%m-%d"))
             
             st.markdown("---")
             # 📌 CHANGE 1: Center the main header and make it smaller (using H3)
@@ -255,4 +253,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

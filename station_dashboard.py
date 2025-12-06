@@ -233,7 +233,7 @@ def main():
                 if station_map:
                     # Map height reduced to make it appear smaller/40% area of the screen
                     st.subheader("Interactive Map")
-                    folium_static(station_map, width=600, height=450)
+                    folium_static(station_map, width=800, height=600)
             # The spacer_col is empty, achieving the 40% width effect.
         
         else:
@@ -268,4 +268,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

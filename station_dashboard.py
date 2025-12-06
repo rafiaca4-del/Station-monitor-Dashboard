@@ -195,9 +195,7 @@ def main():
         
         # Show map or detail view
         if st.session_state.selected_station is None:    
-            # 📌 CHANGE 2: Center the metrics by using a wider column for centering (1 part left, 3 parts metrics, 1 part right)
-            col_left_spacer, col_metrics, col_right_spacer = st.columns([1, 3, 1])
- col1, col2, col3 = st.columns(3)
+            col1, col2, col3 = st.columns(3)
             with col1:
                 st.metric("Total Stations", len(st.session_state.stations_data))
             with col2:
@@ -253,5 +251,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 

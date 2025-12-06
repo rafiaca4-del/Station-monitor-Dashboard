@@ -157,6 +157,8 @@ def create_map(stations_df):
     
     return m
 
+# ... (rest of the code before main) ...
+
 # Main App
 def main():
     st.title("🌊 Observation Station Monitor")
@@ -215,10 +217,11 @@ def main():
         # Show map or detail view
         if st.session_state.selected_station is None:            
             
-            # 📌 Centered Metrics Section 
+            # 📌 METRICS: Centered Metrics Section using columns [1, 3, 1]
             col_left_spacer, col_metrics, col_right_spacer = st.columns([1, 3, 1])
 
             with col_metrics:
+                # Metrics columns are nested inside the centered block
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     st.metric("Total Stations", len(st.session_state.stations_data))
@@ -235,17 +238,18 @@ def main():
             
             st.markdown("---")
             
-            # 📌 Centered and smaller Header (using h3)
+            # 📌 HEADER: Centered and smaller Header (using h3)
+            # CSS handles the minimal gap from the markdown above
             st.markdown("<h3 style='text-align: center;'>📍 Station Locations</h3>", unsafe_allow_html=True)
             
-            # 📌 Full Width Map
+            # 📌 MAP: Full Width Map (No surrounding columns needed)
             station_map = create_map(st.session_state.stations_data)
             if station_map:
                 # Setting width=None allows folium_static to expand to the full width of its container
                 folium_static(station_map, width=None, height=600)
         
         else:
-            # Detail View (No changes here, as per previous request to hide charts/data)
+            # Detail View (No data/chart display)
             station = st.session_state.selected_station
             
             if st.button("← Back to Map"):

@@ -141,68 +141,69 @@ def create_map(stations_df):
     
     return m
 
-def filter_data_by_days(df, days):
-    """Filter dataframe to last N days"""
-    if df is None or len(df) == 0:
-        return df
-    
-    if 'Date' not in df.columns:
-        return df
-    
-    df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
-    df = df.dropna(subset=['Date'])
-    
-    if len(df) == 0:
-        return df
-    
-    # Find the latest date in the dataset to calculate range backwards
-    # (Better than datetime.now() if data isn't updated daily)
-    latest_date = df['Date'].max()
-    cutoff_date = latest_date - timedelta(days=days)
-    return df[df['Date'] >= cutoff_date]
+# The following two functions are now unused but kept in case they are needed later:
+# def filter_data_by_days(df, days):
+#     """Filter dataframe to last N days"""
+#     if df is None or len(df) == 0:
+#         return df
+#     
+#     if 'Date' not in df.columns:
+#         return df
+#     
+#     df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+#     df = df.dropna(subset=['Date'])
+#     
+#     if len(df) == 0:
+#         return df
+#     
+#     # Find the latest date in the dataset to calculate range backwards
+#     # (Better than datetime.now() if data isn't updated daily)
+#     latest_date = df['Date'].max()
+#     cutoff_date = latest_date - timedelta(days=days)
+#     return df[df['Date'] >= cutoff_date]
 
-def create_time_series_chart(data, station_name, days):
-    """Create interactive time series chart"""
-    if data is None or len(data) == 0:
-        return None
-    
-    # Get numeric columns (excluding Date)
-    numeric_cols = data.select_dtypes(include=['float64', 'int64']).columns.tolist()
-    
-    if len(numeric_cols) == 0:
-        return None
-    
-    fig = go.Figure()
-    
-    colors = ['#3498db', '#e74c3c', '#2ecc71', '#9b59b6']
-    
-    for idx, col in enumerate(numeric_cols):
-        fig.add_trace(go.Scatter(
-            x=data['Date'],
-            y=data[col],
-            mode='lines+markers',
-            name=col,
-            line=dict(color=colors[idx % len(colors)], width=2),
-            marker=dict(size=4)
-        ))
-    
-    fig.update_layout(
-        title=f"{station_name} — Last {days} Days Available Data",
-        xaxis_title="Date",
-        yaxis_title="Measurement Value",
-        hovermode='x unified',
-        height=500,
-        template='plotly_white',
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1
-        )
-    )
-    
-    return fig
+# def create_time_series_chart(data, station_name, days):
+#     """Create interactive time series chart"""
+#     if data is None or len(data) == 0:
+#         return None
+#     
+#     # Get numeric columns (excluding Date)
+#     numeric_cols = data.select_dtypes(include=['float64', 'int64']).columns.tolist()
+#     
+#     if len(numeric_cols) == 0:
+#         return None
+#     
+#     fig = go.Figure()
+#     
+#     colors = ['#3498db', '#e74c3c', '#2ecc71', '#9b59b6']
+#     
+#     for idx, col in enumerate(numeric_cols):
+#         fig.add_trace(go.Scatter(
+#             x=data['Date'],
+#             y=data[col],
+#             mode='lines+markers',
+#             name=col,
+#             line=dict(color=colors[idx % len(colors)], width=2),
+#             marker=dict(size=4)
+#         ))
+#     
+#     fig.update_layout(
+#         title=f"{station_name} — Last {days} Days Available Data",
+#         xaxis_title="Date",
+#         yaxis_title="Measurement Value",
+#         hovermode='x unified',
+#         height=500,
+#         template='plotly_white',
+#         legend=dict(
+#             orientation="h",
+#             yanchor="bottom",
+#             y=1.02,
+#             xanchor="right",
+#             x=1
+#         )
+#     )
+#     
+#     return fig
 
 # Main App
 def main():
@@ -216,13 +217,15 @@ def main():
             with st.spinner(f"Reading data from repository ({LOCATION_FILE} & {DATA_FILE})..."):
                 # Load data directly from filenames
                 st.session_state.stations_data = load_location_data(LOCATION_FILE)
-                st.session_state.data_df = load_data_file(DATA_FILE)
+                # We still load data_df to maintain the original data flow structure,
+                # even though we don't use it to display charts/tables later.
+                st.session_state.data_df = load_data_file(DATA_FILE) 
                 
             if st.session_state.stations_data is not None and st.session_state.data_df is not None:
-                 st.success(f"✓ Successfully loaded data for {len(st.session_state.stations_data)} stations.")
+                st.success(f"✓ Successfully loaded data for {len(st.session_state.stations_data)} stations.")
             else:
-                 st.error("Failed to read data files even though they exist.")
-                 st.stop() # Stop app execution if data load fails
+                st.error("Failed to read data files even though they exist.")
+                st.stop() # Stop app execution if data load fails
         else:
             # Informative error message if files are missing from GitHub repo
             st.error(f"""
@@ -329,53 +332,63 @@ def main():
 
             st.markdown("---")
             
-            # Time range selector
-            col1, col2 = st.columns([1, 4])
-            with col1:
-                days = st.selectbox(
-                    "Time Range",
-                    options=[7, 30, 90, 120, 365, 9999],
-                    format_func=lambda x: f"Last {x} Days" if x != 9999 else "All Time",
-                    index=2  # Default to 90 days
-                )
+            # --- CODE REMOVED TO HIDE GRAPH AND RAW DATA START ---
             
-            # Load and display chart
-            if st.session_state.data_df:
-                station_id = str(station.get('Station ID', '')).lower()
-                
-                # Find matching sheet
-                matching_sheet = None
-                for sheet_name in st.session_state.data_df.keys():
-                    if station_id in str(sheet_name).lower():
-                        matching_sheet = sheet_name
-                        break
-                
-                if matching_sheet:
-                    data = st.session_state.data_df[matching_sheet].copy()
-                    
-                    # Filter by time range
-                    filtered_data = filter_data_by_days(data, days)
-                    
-                    if len(filtered_data) > 0:
-                        # Create chart
-                        fig = create_time_series_chart(
-                            filtered_data,
-                            station.get('Station Name ', 'Unknown'),
-                            days
-                        )
-                        
-                        if fig:
-                            st.plotly_chart(fig, use_container_width=True)
-                        else:
-                            st.warning("No numeric data available to plot")
-                        
-                        # Show data table
-                        with st.expander("📋 View Raw Data"):
-                            st.dataframe(filtered_data, use_container_width=True)
-                    else:
-                        st.warning(f"No data available for the last {days} days")
-                else:
-                    st.error(f"No data sheet found within Data.xlsx matching station ID: {station.get('Station ID', 'N/A')}")
+            # # Time range selector (REMOVED)
+            # col1, col2 = st.columns([1, 4])
+            # with col1:
+            #     days = st.selectbox(
+            #         "Time Range",
+            #         options=[7, 30, 90, 120, 365, 9999],
+            #         format_func=lambda x: f"Last {x} Days" if x != 9999 else "All Time",
+            #         index=2  # Default to 90 days
+            #     )
+            # 
+            # # Load and display chart (REMOVED)
+            # if st.session_state.data_df:
+            #     station_id = str(station.get('Station ID', '')).lower()
+            #     
+            #     # Find matching sheet
+            #     matching_sheet = None
+            #     for sheet_name in st.session_state.data_df.keys():
+            #         if station_id in str(sheet_name).lower():
+            #             matching_sheet = sheet_name
+            #             break
+            #     
+            #     if matching_sheet:
+            #         data = st.session_state.data_df[matching_sheet].copy()
+            #         
+            #         # Filter by time range
+            #         filtered_data = filter_data_by_days(data, days)
+            #         
+            #         if len(filtered_data) > 0:
+            #             # Create chart (REMOVED)
+            #             # fig = create_time_series_chart(
+            #             #     filtered_data,
+            #             #     station.get('Station Name ', 'Unknown'),
+            #             #     days
+            #             # )
+            #             # 
+            #             # if fig:
+            #             #     st.plotly_chart(fig, use_container_width=True)
+            #             # else:
+            #             #     st.warning("No numeric data available to plot")
+            #             
+            #             # Show data table (REMOVED)
+            #             # with st.expander("📋 View Raw Data"):
+            #             #     st.dataframe(filtered_data, use_container_width=True)
+            #             
+            #             st.info("Time series chart and raw data display functionality is disabled in this version.")
+            #             
+            #         else:
+            #             st.warning(f"No data available for the last {days} days")
+            #     else:
+            #         st.error(f"No data sheet found within Data.xlsx matching station ID: {station.get('Station ID', 'N/A')}")
+            
+            st.info("Data visualization and raw table views are currently hidden per request.")
+            
+            # --- CODE REMOVED TO HIDE GRAPH AND RAW DATA END ---
+
 
 if __name__ == "__main__":
     main()

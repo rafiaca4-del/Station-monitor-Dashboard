@@ -62,8 +62,9 @@ st.markdown("""
     div.block-container {
         padding-top: 2.5rem; 
         padding-bottom: 0rem;
-        padding-left: 10rem;
+        padding-left: 1rem;
         padding-right: 2rem;
+        text-align: center; 
     }
     h1 {
         margin-top: 0rem !important;
@@ -280,6 +281,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

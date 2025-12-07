@@ -60,7 +60,7 @@ st.markdown("""
         display: none; 
     }
     div.block-container {
-        padding-top: 1rem; /* Reduced top padding for the main content area */
+        padding-top: 2rem; 
         padding-bottom: 0rem;
         padding-left: 2rem;
         padding-right: 2rem;
@@ -280,3 +280,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

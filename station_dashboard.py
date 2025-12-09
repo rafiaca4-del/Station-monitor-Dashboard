@@ -103,7 +103,7 @@ def load_location_data(filepath):
         # --- ENFORCING REQUIRED COLUMNS AND CLEANUP ---
         # Ensure only the required columns exist (case-insensitive column matching is complex, 
         # so we assume exact column names as stated in the prompt for simplicity).
-        required_cols = ['Station Name', 'Address', 'Lat', 'Lon', 'Status']
+        required_cols = ['Station Name', 'Adress', 'Lat', 'Lon', 'Status']
         
         # We need to handle the extra space in 'Station Name ' from the original code. 
         # For simplicity, we assume the user's requested column name ('Station Name') 
@@ -311,4 +311,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

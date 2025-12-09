@@ -8,7 +8,7 @@ import os
 import numpy as np 
 
 # --- FILE CONFIGURATION ---
-LOCATION_FILE = "Location1.xlsx"
+LOCATION_FILE = "Station information.xlsx" # UPDATED FILE NAME
 DATA_FILE = "Data.xlsx"
 # --- END FILE CONFIGURATION ---
 
@@ -67,14 +67,12 @@ st.markdown("""
         padding-left: 2rem;
         padding-right: 2rem;
     }
-    /* 📌 NEW/UPDATED CSS for centering the main title (st.title renders as H1) */
     h1 {
-        text-align: center; /* Center the text */
+        text-align: center; /* Center the title */
         margin-top: 0rem !important;
         padding-top: 0rem !important;
-        padding-bottom: 1rem; /* Add some space below the title */
+        padding-bottom: 1rem; 
     }
-    
     div[data-testid="stMetric"] {
         text-align: center; 
     }
@@ -124,7 +122,9 @@ def load_location_data(filepath):
     try:
         df = pd.read_excel(filepath)
         df.columns = df.columns.str.strip()
-        required_cols = ['Station Name', 'Adress', 'Lat', 'Lon', 'Status']
+        
+        # 📌 UPDATED REQUIRED COLUMNS
+        required_cols = ['Station Name', 'Adress', 'Lat', 'Lon', 'Status', 'Type', 'Starting date', 'Last updated']
         
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
@@ -174,6 +174,7 @@ def create_map(stations_df):
             status = row.get('Status', 'Unknown')
             icon_color = 'green' if status.lower() == 'active' else 'red'
             
+            # Note: Using 'Adress' here, matching the new column name
             popup_html = f"""
             <div style="font-family: Arial; width: 200px;">
                 <h4>{row.get('Station Name', 'Unknown')}</h4>
@@ -241,7 +242,7 @@ def main():
             st.error(f"""
             ⚠️ Data files not found!
             Please ensure required Excel files are uploaded:
-            1. `{LOCATION_FILE}` (Must contain: Station Name, Adress, Lat, Lon, Status)
+            1. `{LOCATION_FILE}` (Must contain: Station Name, Adress, Lat, Lon, Status, Type, Starting date, Last updated)
             2. `{DATA_FILE}` (Data content)
             """)
             st.stop()
@@ -252,10 +253,9 @@ def main():
     # -------------------------------------------------------------
     # 📌 STEP 1: Main 50/50 split for Header Alignment
     # -------------------------------------------------------------
-    # This split is needed to position the list header correctly
     col_map_header_spacer, col_list_header = st.columns([3, 3]) # 50% / 50%
     
-    # Render the Station List Header outside the list columns
+    # Render the Station List Header
     with col_list_header:
          st.markdown('<div class="list-title-container"><h2>🏢 Station List</h2></div>', unsafe_allow_html=True)
 
@@ -263,7 +263,6 @@ def main():
     # -------------------------------------------------------------
     # 📌 STEP 2: Main 50/16.67/16.67/16.67 content split
     # -------------------------------------------------------------
-    # Weights: 50% / 16.67% / 16.67% / 16.67% -> Use [3, 1, 1, 1]
     col_main_content, col_list_1, col_list_2, col_list_3 = st.columns([3, 1, 1, 1]) 
 
 
@@ -325,9 +324,10 @@ def main():
             
             st.header(f"📊 {station.get('Station Name', 'Unknown Station')}")
             
-            # Station details metrics (5 columns adjusted to fill 50% width)
-            col_d1, col_d2, col_d3, col_d4, col_d5 = st.columns([2, 2, 1, 1, 1])
+            # 📌 UPDATED METRICS LAYOUT (4 Columns for 8 Metrics)
+            col_d1, col_d2, col_d3, col_d4 = st.columns(4)
             
+            # Row 1 (Name, Adress, Lat, Starting date)
             with col_d1:
                 st.metric("Station Name", station.get('Station Name', 'N/A'))
             with col_d2:
@@ -335,10 +335,22 @@ def main():
             with col_d3:
                 st.metric("Latitude", f"{station.get('Lat', 'N/A'):.4f}" if pd.notna(station.get('Lat')) else 'N/A')
             with col_d4:
-                st.metric("Longitude", f"{station.get('Lon', 'N/A'):.4f}" if pd.notna(station.get('Lon')) else 'N/A')
-            with col_d5:
-                st.metric("Status", station.get('Status', 'N/A'))
+                st.metric("Starting Date", station.get('Starting date', 'N/A'))
 
+            # Horizontal separator (using markdown)
+            st.markdown("---")
+
+            # Row 2 (Type, Status, Lon, Last updated)
+            col_d5, col_d6, col_d7, col_d8 = st.columns(4)
+            with col_d5:
+                st.metric("Type", station.get('Type', 'N/A'))
+            with col_d6:
+                st.metric("Status", station.get('Status', 'N/A'))
+            with col_d7:
+                st.metric("Longitude", f"{station.get('Lon', 'N/A'):.4f}" if pd.notna(station.get('Lon')) else 'N/A')
+            with col_d8:
+                st.metric("Last Updated", station.get('Last updated', 'N/A'))
+            
             st.markdown("---")
             
             st.info("Data visualization and raw table views are currently hidden per request.")

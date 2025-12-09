@@ -67,10 +67,14 @@ st.markdown("""
         padding-left: 2rem;
         padding-right: 2rem;
     }
+    /* 📌 NEW/UPDATED CSS for centering the main title (st.title renders as H1) */
     h1 {
+        text-align: center; /* Center the text */
         margin-top: 0rem !important;
         padding-top: 0rem !important;
+        padding-bottom: 1rem; /* Add some space below the title */
     }
+    
     div[data-testid="stMetric"] {
         text-align: center; 
     }
@@ -101,7 +105,7 @@ st.markdown("""
     .list-title-container {
         text-align: center;
         width: 100%;
-        margin-top: 0.5rem; /* Ensure minimal space above the list title */
+        margin-top: 0.5rem; 
     }
 </style>
 """, unsafe_allow_html=True)
@@ -190,7 +194,6 @@ def create_map(stations_df):
 def render_list_column(df_slice, column):
     """Renders a slice of the station list into a given Streamlit column."""
     with column:
-        # The container is applied to the individual list columns to manage scrolling
         st.markdown("<div class='station-list-container'>", unsafe_allow_html=True)
         for idx, station in df_slice.iterrows():
             station_name = station.get('Station Name', 'Unknown')
@@ -220,6 +223,8 @@ def render_list_column(df_slice, column):
 
 # Main App
 def main():
+    
+    # 📌 MOVED/CENTERED TITLE
     st.title("🌊 Observation Station Monitor")
 
     # --- AUTOMATIC DATA LOADING START ---
@@ -247,6 +252,7 @@ def main():
     # -------------------------------------------------------------
     # 📌 STEP 1: Main 50/50 split for Header Alignment
     # -------------------------------------------------------------
+    # This split is needed to position the list header correctly
     col_map_header_spacer, col_list_header = st.columns([3, 3]) # 50% / 50%
     
     # Render the Station List Header outside the list columns

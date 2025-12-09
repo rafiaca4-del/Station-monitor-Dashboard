@@ -97,11 +97,11 @@ st.markdown("""
         gap: 0.5rem; 
     }
     
-    /* Center the Station List Title over the three columns */
+    /* Center the Station List Title */
     .list-title-container {
         text-align: center;
         width: 100%;
-        margin-bottom: 1rem;
+        margin-top: 0.5rem; /* Ensure minimal space above the list title */
     }
 </style>
 """, unsafe_allow_html=True)
@@ -241,24 +241,28 @@ def main():
             """)
             st.stop()
     # --- AUTOMATIC DATA LOADING END ---
-
-    # 📌 NEW LAYOUT: 50% Map/Details and 3 x 16.67% List Columns
-    # Weights: 50% / 16.67% / 16.67% / 16.67% -> Use [3, 1, 1, 1] for relative simplicity
-    col_main_content, col_list_1, col_list_2, col_list_3 = st.columns([3, 1, 1, 1]) 
     
     stations_df = st.session_state.stations_data
     
-    # --- 50% COLUMNS: Split Station List ---
+    # -------------------------------------------------------------
+    # 📌 STEP 1: Main 50/50 split for Header Alignment
+    # -------------------------------------------------------------
+    col_map_header_spacer, col_list_header = st.columns([3, 3]) # 50% / 50%
+    
+    # Render the Station List Header outside the list columns
+    with col_list_header:
+         st.markdown('<div class="list-title-container"><h2>🏢 Station List</h2></div>', unsafe_allow_html=True)
+
+
+    # -------------------------------------------------------------
+    # 📌 STEP 2: Main 50/16.67/16.67/16.67 content split
+    # -------------------------------------------------------------
+    # Weights: 50% / 16.67% / 16.67% / 16.67% -> Use [3, 1, 1, 1]
+    col_main_content, col_list_1, col_list_2, col_list_3 = st.columns([3, 1, 1, 1]) 
+
+
+    # --- 50% COLUMNS: Split Station List Content ---
     if stations_df is not None:
-        
-        # --- List Header ---
-        # Render the header in a way that centers it over the three list columns
-        with col_list_1:
-             st.markdown('<div style="text-align: center;"><h2>🏢 Station List</h2></div>', unsafe_allow_html=True)
-        with col_list_2:
-             st.markdown('<br>', unsafe_allow_html=True) # Spacer
-        with col_list_3:
-             st.markdown('<br>', unsafe_allow_html=True) # Spacer
         
         # Calculate the split points
         total_stations = len(stations_df)

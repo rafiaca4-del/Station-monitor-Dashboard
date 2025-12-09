@@ -28,9 +28,9 @@ st.markdown("""
     .station-card {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         padding: 1px;
-        border-radius: 8px;
-        margin-bottom: 8px;
-        border-left: 4px solid #3498db;
+        border-radius: 1px;
+        margin-bottom: 1px;
+        border-left: 1px solid #3498db;
         cursor: pointer;
     }
     .station-card:hover {
@@ -327,4 +327,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

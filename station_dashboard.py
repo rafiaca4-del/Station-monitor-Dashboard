@@ -9,7 +9,7 @@ import numpy as np
 
 # --- FILE CONFIGURATION ---
 LOCATION_FILE = "Location1.xlsx" 
-DETAIL_FILE = "station information.xlsx" 
+DETAIL_FILE = "station information1.xlsx" 
 # --- END FILE CONFIGURATION ---
 
 st.set_page_config(
@@ -54,7 +54,7 @@ st.markdown("""
         font-weight: bold;
     }
     div[data-testid="stMetricValue"] {
-        font-size: 1.2rem;
+        font-size: 2rem;
     }
     
     /* Global Streamlit UI Cleanup */
@@ -376,3 +376,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -8,14 +8,14 @@ import os
 
 # --- FILE CONFIGURATION ---
 LOCATION_FILE = "Location1.xlsx"
-DATA_FILE = "Data.xlsx" # Still referenced, but its data is not displayed per original request
+DATA_FILE = "Data.xlsx"
 # --- END FILE CONFIGURATION ---
 
 st.set_page_config(
     page_title="Station Monitoring Dashboard",
     page_icon="🌊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    # Sidebar is no longer needed
 )
 
 # Custom CSS
@@ -24,9 +24,8 @@ st.markdown("""
     .main {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
-    .stSidebar {
-        background-color: white;
-    }
+    /* Removed .stSidebar styles as it's no longer used */
+    
     .station-card {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         padding: 10px;
@@ -82,6 +81,14 @@ st.markdown("""
     div[data-testid="stMetric"] {
         text-align: center; 
     }
+    
+    /* 📌 NEW CSS: Make the station list scrollable in the 40% column */
+    .station-list-container {
+        max-height: 80vh; /* Adjust height for the new column */
+        overflow-y: auto;
+        padding-right: 15px;
+        padding-left: 5px; /* Added slight left padding */
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -97,20 +104,13 @@ if 'data_df' not in st.session_state:
 def load_location_data(filepath):
     """Load location/station data from local Excel file path"""
     try:
-        # Load the data
         df = pd.read_excel(filepath)
         
-        # --- ENFORCING REQUIRED COLUMNS AND CLEANUP ---
-        # Ensure only the required columns exist (case-insensitive column matching is complex, 
-        # so we assume exact column names as stated in the prompt for simplicity).
-        required_cols = ['Station Name', 'Adress', 'Lat', 'Lon', 'Status']
-        
-        # We need to handle the extra space in 'Station Name ' from the original code. 
-        # For simplicity, we assume the user's requested column name ('Station Name') 
-        # is the new standard, but we include a check just in case.
-        
-        # Try to clean up column names if they have trailing spaces (like in original code)
+        # Cleanup column names
         df.columns = df.columns.str.strip()
+        
+        # Required columns (Station Name, Adress, Lat, Lon, Status)
+        required_cols = ['Station Name', 'Adress', 'Lat', 'Lon', 'Status']
         
         # Check if all required columns are present after cleanup
         missing_cols = [col for col in required_cols if col not in df.columns]
@@ -120,7 +120,6 @@ def load_location_data(filepath):
 
         # Return only the required columns
         return df[required_cols]
-        # --- END ENFORCING REQUIRED COLUMNS AND CLEANUP ---
         
     except Exception as e:
         st.error(f"Error loading location data from {filepath}: {e}")
@@ -128,7 +127,7 @@ def load_location_data(filepath):
 
 @st.cache_data
 def load_data_file(filepath):
-    """Load all sheets from data Excel file path (kept for consistency, but unused in detail view)"""
+    """Load all sheets from data Excel file path (kept for consistency)"""
     try:
         xlsx = pd.ExcelFile(filepath)
         all_data = {}
@@ -136,10 +135,8 @@ def load_data_file(filepath):
             all_data[sheet_name] = pd.read_excel(xlsx, sheet_name=sheet_name)
         return all_data
     except Exception as e:
-        # It's okay if this fails if the user hasn't provided it, but the main app relies on both files existing.
         return None
 
-# Simplified icon function
 def get_station_icon(status):
     """Return emoji icon based on status"""
     if pd.notna(status) and 'active' in str(status).lower():
@@ -172,7 +169,7 @@ def create_map(stations_df):
             popup_html = f"""
             <div style="font-family: Arial; width: 200px;">
                 <h4>{row.get('Station Name', 'Unknown')}</h4>
-                <b>Address:</b> {row.get('Adress', 'N/A')}<br>
+                <b>Adress:</b> {row.get('Adress', 'N/A')}<br>
                 <b>Status:</b> {status}<br>
             </div>
             """
@@ -186,19 +183,50 @@ def create_map(stations_df):
     
     return m
 
+def render_station_list():
+    """Renders the station list in the 40% column."""
+    st.header("🏢 Station List")
+    st.markdown("<div class='station-list-container'>", unsafe_allow_html=True)
+    
+    if st.session_state.stations_data is not None:
+        for idx, station in st.session_state.stations_data.iterrows():
+            station_name = station.get('Station Name', 'Unknown')
+            adress = station.get('Adress', 'N/A')
+            status = station.get('Status', 'Unknown')
+            icon = get_station_icon(status)
+            
+            # Button uses Station Name
+            if st.button(
+                f"{icon} {station_name}",
+                key=f"station_{idx}",
+                use_container_width=True
+            ):
+                st.session_state.selected_station = station
+                st.rerun() # Rerun to switch to detail view
+            
+            # Caption for Address
+            st.caption(f"Adress: {adress}")
+            
+            # Status Badge
+            if status.lower() == 'active':
+                st.markdown('<span class="status-badge-active">Active</span>', unsafe_allow_html=True)
+            elif status.lower() == 'dead':
+                st.markdown('<span class="status-badge-dead">Dead</span>', unsafe_allow_html=True)
+            
+            st.markdown("---")
+            
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
 # Main App
 def main():
     st.title("🌊 Observation Station Monitor")
 
     # --- AUTOMATIC DATA LOADING START ---
-    # Ensure both files are present and loaded
     if st.session_state.stations_data is None or st.session_state.data_df is None:
         if os.path.exists(LOCATION_FILE) and os.path.exists(DATA_FILE):
             with st.spinner(f"Reading data from repository ({LOCATION_FILE} & {DATA_FILE})..."):
-                # Load location data
                 st.session_state.stations_data = load_location_data(LOCATION_FILE)
-                
-                # Load data file (even if its contents are unused)
                 st.session_state.data_df = load_data_file(DATA_FILE) 
             
             if st.session_state.stations_data is None or st.session_state.data_df is None:
@@ -214,95 +242,69 @@ def main():
             st.stop()
     # --- AUTOMATIC DATA LOADING END ---
 
-    
-    # Sidebar - Station List Only
-    with st.sidebar:
-        if st.session_state.stations_data is not None:
-            st.header("🏢 Station List")
-            for idx, station in st.session_state.stations_data.iterrows():
-                station_name = station.get('Station Name', 'Unknown')
-                adress = station.get('Adress', 'N/A')
-                status = station.get('Status', 'Unknown')
-                icon = get_station_icon(status)
-                
-                # Button uses Station Name
-                if st.button(
-                    f"{icon} {station_name}",
-                    key=f"station_{idx}",
-                    use_container_width=True
-                ):
-                    st.session_state.selected_station = station
-                
-                # Caption for Address
-                st.caption(f"Adress: {adress}")
-                
-                # Status Badge
-                if status.lower() == 'active':
-                    st.markdown('<span class="status-badge-active">Active</span>', unsafe_allow_html=True)
-                elif status.lower() == 'dead':
-                    st.markdown('<span class="status-badge-dead">Dead</span>', unsafe_allow_html=True)
-                
-                st.markdown("---")
+    # 📌 NEW LAYOUT: 60% Map/Details (Left) and 40% Station List (Right)
+    # The weights are relative, so [6, 4] achieves the 60/40 split.
+    col_main_content, col_station_list = st.columns([6, 4]) 
 
-    
-    # Main Content Area
-    if st.session_state.stations_data is not None:
+    # --- 40% COLUMN: Station List ---
+    with col_station_list:
+        render_station_list()
         
-        # Show map or detail view
+    # --- 60% COLUMN: Map or Details ---
+    with col_main_content:
+        
         if st.session_state.selected_station is None:            
+            # --- INITIAL VIEW (Map and Metrics) ---
             
-            # 📌 METRICS: Centered Metrics Section using columns [1, 3, 1]
-            col_left_spacer, col_metrics, col_right_spacer = st.columns([1, 3, 1])
-
-            with col_metrics:
-                # Metrics columns are nested inside the centered block
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("Total Stations", len(st.session_state.stations_data))
-                with col2:
-                    if 'Status' in st.session_state.stations_data.columns:
-                        active_count = len(st.session_state.stations_data[
-                            st.session_state.stations_data['Status'].astype(str).str.lower() == 'active'
-                        ])
-                        st.metric("Active Stations", active_count)
-                    else:
-                        st.metric("Active Stations", "N/A")
-                with col3:
-                    st.metric("Dashboard Date", datetime.now().strftime("%Y-%m-%d"))
+            # Metrics (Adjusted to fit the 60% column)
+            col_m1, col_m2, col_m3 = st.columns(3)
+            with col_m1:
+                st.metric("Total Stations", len(st.session_state.stations_data))
+            with col_m2:
+                if 'Status' in st.session_state.stations_data.columns:
+                    active_count = len(st.session_state.stations_data[
+                        st.session_state.stations_data['Status'].astype(str).str.lower() == 'active'
+                    ])
+                    st.metric("Active Stations", active_count)
+                else:
+                    st.metric("Active Stations", "N/A")
+            with col_m3:
+                st.metric("Dashboard Date", datetime.now().strftime("%Y-%m-%d"))
             
             st.markdown("---")
             
-            # 📌 HEADER: Centered and smaller Header (using h3)
+            # Map Header
             st.markdown("<h3 style='text-align: center;'>📍 Station Locations</h3>", unsafe_allow_html=True)
             
-            # 📌 MAP: Full Width Map (No surrounding columns needed)
+            # Map Rendering
             station_map = create_map(st.session_state.stations_data)
             if station_map:
-                # Setting width=None allows folium_static to expand to the full width of its container
+                # Use height=600 to give the map a good vertical size
                 folium_static(station_map, width=None, height=600)
         
         else:
-            # Detail View 
+            # --- DETAIL VIEW (Station Info) ---
             station = st.session_state.selected_station
             
-            if st.button("← Back to Map"):
+            # Back button
+            if st.button("← Back to Map View"):
                 st.session_state.selected_station = None
-                st.rerun()
+                st.rerun() 
             
             st.header(f"📊 {station.get('Station Name', 'Unknown Station')}")
             
-            # Station details metrics (now 5 columns)
-            col1, col2, col3, col4, col5 = st.columns(5)
+            # Station details metrics (5 columns adjusted to fill 60% width)
+            col_d1, col_d2, col_d3, col_d4, col_d5 = st.columns([2, 2, 1, 1, 1])
             
-            with col1:
+            with col_d1:
                 st.metric("Station Name", station.get('Station Name', 'N/A'))
-            with col2:
+            with col_d2:
                 st.metric("Adress", station.get('Adress', 'N/A'))
-            with col3:
+            with col_d3:
                 st.metric("Latitude", f"{station.get('Lat', 'N/A'):.4f}" if pd.notna(station.get('Lat')) else 'N/A')
-            with col4:
+            with col_d4:
                 st.metric("Longitude", f"{station.get('Lon', 'N/A'):.4f}" if pd.notna(station.get('Lon')) else 'N/A')
-            with col5:
+            with col_d5:
                 st.metric("Status", station.get('Status', 'N/A'))
 
             st.markdown("---")
@@ -311,6 +313,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-

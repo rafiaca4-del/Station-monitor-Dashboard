@@ -8,7 +8,11 @@ import os
 import numpy as np 
 
 # --- FILE CONFIGURATION ---
-LOCATION_FILE = "station information.xlsx" # UPDATED FILE NAME
+# 📌 Map/List Data Source (5 columns)
+LOCATION_FILE = "Location1.xlsx" 
+# 📌 Detail/Metrics Data Source (8 columns)
+DETAIL_FILE = "Station information.xlsx" 
+# Other data source
 DATA_FILE = "Data.xlsx"
 # --- END FILE CONFIGURATION ---
 
@@ -18,7 +22,7 @@ st.set_page_config(
     layout="wide",
 )
 
-# Custom CSS
+# Custom CSS (Retaining the layout and centering styles)
 st.markdown("""
 <style>
     .main {
@@ -67,12 +71,14 @@ st.markdown("""
         padding-left: 2rem;
         padding-right: 2rem;
     }
+    /* Centering the main title (H1) */
     h1 {
-        text-align: center; /* Center the title */
+        text-align: center; 
         margin-top: 0rem !important;
         padding-top: 0rem !important;
         padding-bottom: 1rem; 
     }
+    
     div[data-testid="stMetric"] {
         text-align: center; 
     }
@@ -113,18 +119,22 @@ if 'selected_station' not in st.session_state:
     st.session_state.selected_station = None
 if 'stations_data' not in st.session_state:
     st.session_state.stations_data = None
+# 📌 NEW SESSION STATE VARIABLE for detailed information
+if 'detail_data' not in st.session_state:
+    st.session_state.detail_data = None
 if 'data_df' not in st.session_state:
     st.session_state.data_df = None
 
+
 @st.cache_data
-def load_location_data(filepath):
-    """Load location/station data from local Excel file path"""
+def load_map_data(filepath):
+    """Load Map/List data (5 columns) from Location1.xlsx"""
     try:
         df = pd.read_excel(filepath)
         df.columns = df.columns.str.strip()
         
-        # 📌 UPDATED REQUIRED COLUMNS
-        required_cols = ['Station Name', 'Adress', 'Lat', 'Lon', 'Status', 'Type', 'Starting date', 'Last updated']
+        # Required columns for Map/List View
+        required_cols = ['Station Name', 'Adress', 'Lat', 'Lon', 'Status']
         
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
@@ -134,7 +144,30 @@ def load_location_data(filepath):
         return df[required_cols]
         
     except Exception as e:
-        st.error(f"Error loading location data from {filepath}: {e}")
+        st.error(f"Error loading map data from {filepath}: {e}")
+        return None
+
+@st.cache_data
+def load_detail_data(filepath):
+    """Load Detail data (8 columns) from Station information.xlsx"""
+    try:
+        df = pd.read_excel(filepath)
+        df.columns = df.columns.str.strip()
+        
+        # Required columns for Detail View
+        required_cols = ['Station Name', 'Adress', 'Lat', 'Lon', 'Status', 'Type', 'Starting date', 'Last updated']
+        
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        if missing_cols:
+            st.error(f"Missing required columns in {filepath}: {', '.join(missing_cols)}")
+            return None
+        
+        # Set 'Station Name' as the index for quick lookups later
+        df = df.set_index('Station Name', drop=False)
+        return df
+        
+    except Exception as e:
+        st.error(f"Error loading detail data from {filepath}: {e}")
         return None
 
 @st.cache_data
@@ -174,7 +207,6 @@ def create_map(stations_df):
             status = row.get('Status', 'Unknown')
             icon_color = 'green' if status.lower() == 'active' else 'red'
             
-            # Note: Using 'Adress' here, matching the new column name
             popup_html = f"""
             <div style="font-family: Arial; width: 200px;">
                 <h4>{row.get('Station Name', 'Unknown')}</h4>
@@ -207,7 +239,9 @@ def render_list_column(df_slice, column):
                 key=f"station_{idx}",
                 use_container_width=True
             ):
-                st.session_state.selected_station = station
+                # When clicked, select the full detail data based on Station Name
+                st.session_state.selected_station_name = station_name
+                st.session_state.selected_station = st.session_state.detail_data.loc[station_name]
                 st.rerun() 
             
             st.caption(f"Adress: {adress}")
@@ -225,25 +259,28 @@ def render_list_column(df_slice, column):
 # Main App
 def main():
     
-    # 📌 MOVED/CENTERED TITLE
     st.title("🌊 Observation Station Monitor")
 
     # --- AUTOMATIC DATA LOADING START ---
-    if st.session_state.stations_data is None or st.session_state.data_df is None:
-        if os.path.exists(LOCATION_FILE) and os.path.exists(DATA_FILE):
-            with st.spinner(f"Reading data from repository ({LOCATION_FILE} & {DATA_FILE})..."):
-                st.session_state.stations_data = load_location_data(LOCATION_FILE)
+    if st.session_state.stations_data is None or st.session_state.detail_data is None or st.session_state.data_df is None:
+        if os.path.exists(LOCATION_FILE) and os.path.exists(DETAIL_FILE) and os.path.exists(DATA_FILE):
+            with st.spinner("Reading data from repository..."):
+                # 📌 Load Map/List Data (Location1.xlsx - 5 columns)
+                st.session_state.stations_data = load_map_data(LOCATION_FILE)
+                # 📌 Load Detail Data (Station information.xlsx - 8 columns)
+                st.session_state.detail_data = load_detail_data(DETAIL_FILE)
                 st.session_state.data_df = load_data_file(DATA_FILE) 
             
-            if st.session_state.stations_data is None or st.session_state.data_df is None:
+            if st.session_state.stations_data is None or st.session_state.detail_data is None or st.session_state.data_df is None:
                 st.error("Failed to read required data files or missing columns. Check console for details.")
                 st.stop()
         else:
             st.error(f"""
             ⚠️ Data files not found!
             Please ensure required Excel files are uploaded:
-            1. `{LOCATION_FILE}` (Must contain: Station Name, Adress, Lat, Lon, Status, Type, Starting date, Last updated)
-            2. `{DATA_FILE}` (Data content)
+            1. `{LOCATION_FILE}` (Map/List data)
+            2. `{DETAIL_FILE}` (Station detail data with 8 fields)
+            3. `{DATA_FILE}` (General data content)
             """)
             st.stop()
     # --- AUTOMATIC DATA LOADING END ---
@@ -315,6 +352,7 @@ def main():
         
         else:
             # --- DETAIL VIEW (Station Info) ---
+            # Now uses the row loaded directly from the detail file, which has all 8 fields.
             station = st.session_state.selected_station
             
             # Back button
@@ -324,20 +362,20 @@ def main():
             
             st.header(f"📊 {station.get('Station Name', 'Unknown Station')}")
             
-            # 📌 UPDATED METRICS LAYOUT (4 Columns for 8 Metrics)
-            col_d1, col_d2, col_d3, col_d4 = st.columns(4)
+            # 📌 DETAIL METRICS LAYOUT (Showing all 8 requested fields from Station information.xlsx)
             
             # Row 1 (Name, Adress, Lat, Starting date)
+            col_d1, col_d2, col_d3, col_d4 = st.columns(4)
             with col_d1:
                 st.metric("Station Name", station.get('Station Name', 'N/A'))
             with col_d2:
                 st.metric("Adress", station.get('Adress', 'N/A'))
             with col_d3:
+                # Use .4f formatting for coordinates
                 st.metric("Latitude", f"{station.get('Lat', 'N/A'):.4f}" if pd.notna(station.get('Lat')) else 'N/A')
             with col_d4:
                 st.metric("Starting Date", station.get('Starting date', 'N/A'))
 
-            # Horizontal separator (using markdown)
             st.markdown("---")
 
             # Row 2 (Type, Status, Lon, Last updated)
@@ -357,4 +395,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

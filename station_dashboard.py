@@ -5,8 +5,11 @@ from datetime import datetime, timedelta
 import folium
 from streamlit_folium import folium_static
 import os
+
+# --- FILE CONFIGURATION ---
 LOCATION_FILE = "Location.xlsx"
-DATA_FILE = "Data.xlsx"
+DATA_FILE = "Data.xlsx" # Still referenced, but its data is not displayed per original request
+# --- END FILE CONFIGURATION ---
 
 st.set_page_config(
     page_title="Station Monitoring Dashboard",
@@ -94,15 +97,38 @@ if 'data_df' not in st.session_state:
 def load_location_data(filepath):
     """Load location/station data from local Excel file path"""
     try:
+        # Load the data
         df = pd.read_excel(filepath)
-        return df
+        
+        # --- ENFORCING REQUIRED COLUMNS AND CLEANUP ---
+        # Ensure only the required columns exist (case-insensitive column matching is complex, 
+        # so we assume exact column names as stated in the prompt for simplicity).
+        required_cols = ['Station Name', 'Address', 'Lat', 'Lon', 'Status']
+        
+        # We need to handle the extra space in 'Station Name ' from the original code. 
+        # For simplicity, we assume the user's requested column name ('Station Name') 
+        # is the new standard, but we include a check just in case.
+        
+        # Try to clean up column names if they have trailing spaces (like in original code)
+        df.columns = df.columns.str.strip()
+        
+        # Check if all required columns are present after cleanup
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        if missing_cols:
+            st.error(f"Missing required columns in {filepath}: {', '.join(missing_cols)}")
+            return None
+
+        # Return only the required columns
+        return df[required_cols]
+        # --- END ENFORCING REQUIRED COLUMNS AND CLEANUP ---
+        
     except Exception as e:
         st.error(f"Error loading location data from {filepath}: {e}")
         return None
 
 @st.cache_data
 def load_data_file(filepath):
-    """Load all sheets from data Excel file path"""
+    """Load all sheets from data Excel file path (kept for consistency, but unused in detail view)"""
     try:
         xlsx = pd.ExcelFile(filepath)
         all_data = {}
@@ -110,17 +136,18 @@ def load_data_file(filepath):
             all_data[sheet_name] = pd.read_excel(xlsx, sheet_name=sheet_name)
         return all_data
     except Exception as e:
-        st.error(f"Error loading data file from {filepath}: {e}")
+        # It's okay if this fails if the user hasn't provided it, but the main app relies on both files existing.
         return None
 
-def get_station_icon(station_type):
-    """Return emoji icon based on station type"""
-    if pd.notna(station_type) and 'groundwater' in str(station_type).lower():
-        return "📍"
-    return "📌"
+# Simplified icon function
+def get_station_icon(status):
+    """Return emoji icon based on status"""
+    if pd.notna(status) and 'active' in str(status).lower():
+        return "🟢"
+    return "🔴"
 
 def create_map(stations_df):
-    """Create a folium map with station markers"""
+    """Create a folium map with station markers, using only available data"""
     if stations_df is None or len(stations_df) == 0:
         return None
     
@@ -131,55 +158,58 @@ def create_map(stations_df):
     # Create map with decreased zoom (zoomed out)
     m = folium.Map(
         location=[center_lat, center_lon],
-        zoom_start=7,  # ZOOM ADJUSTMENT: Zoomed out for better overview
+        zoom_start=7, 
         tiles='OpenStreetMap'
     )
     
     # Add markers
     for idx, row in stations_df.iterrows():
         if pd.notna(row['Lat']) and pd.notna(row['Lon']):
-            icon = get_station_icon(row.get('Type', ''))
+            # Use status to determine marker color
+            status = row.get('Status', 'Unknown')
+            icon_color = 'green' if status.lower() == 'active' else 'red'
             
             popup_html = f"""
             <div style="font-family: Arial; width: 200px;">
-                <h4>{row.get('Station Name ', 'Unknown')}</h4>
-                <b>ID:</b> {row.get('Station ID', 'N/A')}<br>
-                <b>Type:</b> {row.get('Type', 'N/A')}<br>
-                <b>Status:</b> {row.get('Status', 'Unknown')}<br>
+                <h4>{row.get('Station Name', 'Unknown')}</h4>
+                <b>Address:</b> {row.get('Address', 'N/A')}<br>
+                <b>Status:</b> {status}<br>
             </div>
             """
             
             folium.Marker(
                 location=[row['Lat'], row['Lon']],
                 popup=folium.Popup(popup_html, max_width=250),
-                tooltip=row.get('Station Name ', 'Unknown'),
-                icon=folium.Icon(color='blue' if 'groundwater' in str(row.get('Type', '')).lower() else 'red')
+                tooltip=row.get('Station Name', 'Unknown'),
+                icon=folium.Icon(color=icon_color)
             ).add_to(m)
     
     return m
-
-# ... (rest of the code before main) ...
 
 # Main App
 def main():
     st.title("🌊 Observation Station Monitor")
 
     # --- AUTOMATIC DATA LOADING START ---
+    # Ensure both files are present and loaded
     if st.session_state.stations_data is None or st.session_state.data_df is None:
         if os.path.exists(LOCATION_FILE) and os.path.exists(DATA_FILE):
             with st.spinner(f"Reading data from repository ({LOCATION_FILE} & {DATA_FILE})..."):
+                # Load location data
                 st.session_state.stations_data = load_location_data(LOCATION_FILE)
-                st.session_state.data_df = load_data_file(DATA_FILE) 
                 
+                # Load data file (even if its contents are unused)
+                st.session_state.data_df = load_data_file(DATA_FILE) 
+            
             if st.session_state.stations_data is None or st.session_state.data_df is None:
-                st.error("Failed to read data files even though they exist.")
+                st.error("Failed to read required data files or missing columns. Check console for details.")
                 st.stop()
         else:
             st.error(f"""
             ⚠️ Data files not found!
             Please ensure required Excel files are uploaded:
-            1. `{LOCATION_FILE}`
-            2. `{DATA_FILE}`
+            1. `{LOCATION_FILE}` (Must contain: Station Name, Address, Lat, Lon, Status)
+            2. `{DATA_FILE}` (Data content)
             """)
             st.stop()
     # --- AUTOMATIC DATA LOADING END ---
@@ -190,11 +220,12 @@ def main():
         if st.session_state.stations_data is not None:
             st.header("🏢 Station List")
             for idx, station in st.session_state.stations_data.iterrows():
-                station_name = station.get('Station Name ', 'Unknown')
-                station_type = station.get('Type', 'N/A')
+                station_name = station.get('Station Name', 'Unknown')
+                address = station.get('Address', 'N/A')
                 status = station.get('Status', 'Unknown')
-                icon = get_station_icon(station_type)
+                icon = get_station_icon(status)
                 
+                # Button uses Station Name
                 if st.button(
                     f"{icon} {station_name}",
                     key=f"station_{idx}",
@@ -202,8 +233,10 @@ def main():
                 ):
                     st.session_state.selected_station = station
                 
-                st.caption(f"ID: {station.get('Station ID', 'N/A')} | Type: {station_type}")
+                # Caption for Address
+                st.caption(f"Address: {address}")
                 
+                # Status Badge
                 if status.lower() == 'active':
                     st.markdown('<span class="status-badge-active">Active</span>', unsafe_allow_html=True)
                 elif status.lower() == 'dead':
@@ -240,7 +273,6 @@ def main():
             st.markdown("---")
             
             # 📌 HEADER: Centered and smaller Header (using h3)
-            # CSS handles the minimal gap from the markdown above
             st.markdown("<h3 style='text-align: center;'>📍 Station Locations</h3>", unsafe_allow_html=True)
             
             # 📌 MAP: Full Width Map (No surrounding columns needed)
@@ -250,30 +282,28 @@ def main():
                 folium_static(station_map, width=None, height=600)
         
         else:
-            # Detail View (No data/chart display)
+            # Detail View 
             station = st.session_state.selected_station
             
             if st.button("← Back to Map"):
                 st.session_state.selected_station = None
                 st.rerun()
             
-            st.header(f"📊 {station.get('Station Name ', 'Unknown Station')}")
+            st.header(f"📊 {station.get('Station Name', 'Unknown Station')}")
             
-            # Station details
-            col1, col2, col3, col4, col5, col6 = st.columns(6)
+            # Station details metrics (now 5 columns)
+            col1, col2, col3, col4, col5 = st.columns(5)
             
             with col1:
-                st.metric("Station ID", station.get('Station ID', 'N/A'))
+                st.metric("Station Name", station.get('Station Name', 'N/A'))
             with col2:
-                st.metric("Type", station.get('Type', 'N/A'))
+                st.metric("Address", station.get('Address', 'N/A'))
             with col3:
                 st.metric("Latitude", f"{station.get('Lat', 'N/A'):.4f}" if pd.notna(station.get('Lat')) else 'N/A')
             with col4:
                 st.metric("Longitude", f"{station.get('Lon', 'N/A'):.4f}" if pd.notna(station.get('Lon')) else 'N/A')
             with col5:
                 st.metric("Status", station.get('Status', 'N/A'))
-            with col6:
-                st.metric("Last Update", station.get('Last Update', 'N/A'))
 
             st.markdown("---")
             
@@ -281,8 +311,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-

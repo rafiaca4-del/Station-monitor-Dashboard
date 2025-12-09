@@ -27,7 +27,7 @@ st.markdown("""
     
     .station-card {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        padding: 10px;
+        padding: 1px;
         border-radius: 8px;
         margin-bottom: 8px;
         border-left: 4px solid #3498db;
@@ -327,3 +327,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -172,7 +172,7 @@ def create_map(stations_df):
             popup_html = f"""
             <div style="font-family: Arial; width: 200px;">
                 <h4>{row.get('Station Name', 'Unknown')}</h4>
-                <b>Address:</b> {row.get('Address', 'N/A')}<br>
+                <b>Address:</b> {row.get('Adress', 'N/A')}<br>
                 <b>Status:</b> {status}<br>
             </div>
             """
@@ -208,7 +208,7 @@ def main():
             st.error(f"""
             ⚠️ Data files not found!
             Please ensure required Excel files are uploaded:
-            1. `{LOCATION_FILE}` (Must contain: Station Name, Address, Lat, Lon, Status)
+            1. `{LOCATION_FILE}` (Must contain: Station Name, Adress, Lat, Lon, Status)
             2. `{DATA_FILE}` (Data content)
             """)
             st.stop()
@@ -221,7 +221,7 @@ def main():
             st.header("🏢 Station List")
             for idx, station in st.session_state.stations_data.iterrows():
                 station_name = station.get('Station Name', 'Unknown')
-                address = station.get('Address', 'N/A')
+                adress = station.get('Adress', 'N/A')
                 status = station.get('Status', 'Unknown')
                 icon = get_station_icon(status)
                 
@@ -234,7 +234,7 @@ def main():
                     st.session_state.selected_station = station
                 
                 # Caption for Address
-                st.caption(f"Address: {address}")
+                st.caption(f"Adress: {adress}")
                 
                 # Status Badge
                 if status.lower() == 'active':
@@ -297,7 +297,7 @@ def main():
             with col1:
                 st.metric("Station Name", station.get('Station Name', 'N/A'))
             with col2:
-                st.metric("Address", station.get('Address', 'N/A'))
+                st.metric("Adress", station.get('Adress', 'N/A'))
             with col3:
                 st.metric("Latitude", f"{station.get('Lat', 'N/A'):.4f}" if pd.notna(station.get('Lat')) else 'N/A')
             with col4:
@@ -311,5 +311,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 

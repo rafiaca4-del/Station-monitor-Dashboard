@@ -62,7 +62,7 @@ st.markdown("""
         display: none; 
     }
     div.block-container {
-        padding-top: 2.5rem; 
+        padding-top: 3rem; 
         padding-bottom: 0rem;
         padding-left: 2rem;
         padding-right: 2rem;
@@ -376,5 +376,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 

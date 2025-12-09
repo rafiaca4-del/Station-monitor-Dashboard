@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import folium
 from streamlit_folium import folium_static
 import os
-import numpy as np # Used for splitting the list
+import numpy as np 
 
 # --- FILE CONFIGURATION ---
 LOCATION_FILE = "Location1.xlsx"
@@ -16,7 +16,6 @@ st.set_page_config(
     page_title="Station Monitoring Dashboard",
     page_icon="🌊",
     layout="wide",
-    # Sidebar is no longer needed
 )
 
 # Custom CSS
@@ -86,7 +85,7 @@ st.markdown("""
         margin-bottom: 0.5rem !important;
     }
     
-    /* Target the parent container of the list for tighter packing */
+    /* Make the station list scrollable in the 1/3 columns */
     .station-list-container {
         max-height: 80vh; 
         overflow-y: auto;
@@ -96,6 +95,13 @@ st.markdown("""
     /* Reduce internal spacing within the list columns */
     div[data-testid="stVerticalBlock"] {
         gap: 0.5rem; 
+    }
+    
+    /* Center the Station List Title over the three columns */
+    .list-title-container {
+        text-align: center;
+        width: 100%;
+        margin-bottom: 1rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -184,6 +190,7 @@ def create_map(stations_df):
 def render_list_column(df_slice, column):
     """Renders a slice of the station list into a given Streamlit column."""
     with column:
+        # The container is applied to the individual list columns to manage scrolling
         st.markdown("<div class='station-list-container'>", unsafe_allow_html=True)
         for idx, station in df_slice.iterrows():
             station_name = station.get('Station Name', 'Unknown')
@@ -235,28 +242,38 @@ def main():
             st.stop()
     # --- AUTOMATIC DATA LOADING END ---
 
-    # 📌 NEW LAYOUT: 50% Map/Details (Left) and 25% List (Middle) and 25% List (Right)
-    # Weights: [5, 2.5, 2.5] -> Use [2, 1, 1] for relative simplicity (50/25/25)
-    col_main_content, col_list_left, col_list_right = st.columns([2, 1, 1]) 
+    # 📌 NEW LAYOUT: 50% Map/Details and 3 x 16.67% List Columns
+    # Weights: 50% / 16.67% / 16.67% / 16.67% -> Use [3, 1, 1, 1] for relative simplicity
+    col_main_content, col_list_1, col_list_2, col_list_3 = st.columns([3, 1, 1, 1]) 
     
     stations_df = st.session_state.stations_data
     
-    # --- 25% COLUMN 2 & 3: Split Station List ---
+    # --- 50% COLUMNS: Split Station List ---
     if stations_df is not None:
         
-        # Calculate the split point for roughly equal distribution
-        mid_point = len(stations_df) // 2 
+        # --- List Header ---
+        # Render the header in a way that centers it over the three list columns
+        with col_list_1:
+             st.markdown('<div style="text-align: center;"><h2>🏢 Station List</h2></div>', unsafe_allow_html=True)
+        with col_list_2:
+             st.markdown('<br>', unsafe_allow_html=True) # Spacer
+        with col_list_3:
+             st.markdown('<br>', unsafe_allow_html=True) # Spacer
         
-        # Render List Header over the two list columns
-        col_list_left.header("🏢 Station List") 
-        col_list_right.markdown("<br>", unsafe_allow_html=True) # Blank space to align content below header
+        # Calculate the split points
+        total_stations = len(stations_df)
+        split_point_1 = total_stations // 3
+        split_point_2 = 2 * (total_stations // 3)
         
-        # Split the DataFrame
-        df_left = stations_df.iloc[:mid_point]
-        df_right = stations_df.iloc[mid_point:]
+        # Split the DataFrame into three parts
+        df_part_1 = stations_df.iloc[:split_point_1]
+        df_part_2 = stations_df.iloc[split_point_1:split_point_2]
+        df_part_3 = stations_df.iloc[split_point_2:]
 
-        render_list_column(df_left, col_list_left)
-        render_list_column(df_right, col_list_right)
+        # Render the three parts in their respective columns
+        render_list_column(df_part_1, col_list_1)
+        render_list_column(df_part_2, col_list_2)
+        render_list_column(df_part_3, col_list_3)
 
 
     # --- 50% COLUMN: Map or Details ---

@@ -8,9 +8,7 @@ import os
 import numpy as np 
 
 # --- FILE CONFIGURATION ---
-# 📌 Map/List Data Source (5 columns)
 LOCATION_FILE = "Location1.xlsx" 
-# 📌 Detail/Metrics Data Source (8 columns)
 DETAIL_FILE = "station information.xlsx" 
 # --- END FILE CONFIGURATION ---
 
@@ -251,7 +249,6 @@ def main():
     st.title("🌊 Observation Station Monitor")
 
     # --- AUTOMATIC DATA LOADING START ---
-    # Check only for the two location/detail files
     if st.session_state.stations_data is None or st.session_state.detail_data is None:
         if os.path.exists(LOCATION_FILE) and os.path.exists(DETAIL_FILE):
             with st.spinner("Reading data from repository..."):
@@ -349,26 +346,29 @@ def main():
             # Row 1 (Name, Adress, Lat, Starting date)
             col_d1, col_d2, col_d3, col_d4 = st.columns(4)
             with col_d1:
-                st.metric("Station Name", station.get('Station Name', 'N/A'))
+                # Robust string casting added to prevent TypeErrors
+                st.metric("Station Name", str(station.get('Station Name', 'N/A')))
             with col_d2:
-                st.metric("Adress", station.get('Adress', 'N/A'))
+                st.metric("Adress", str(station.get('Adress', 'N/A')))
             with col_d3:
+                # Latitude formatting is numerical, so float check is okay
                 st.metric("Latitude", f"{station.get('Lat', 'N/A'):.4f}" if pd.notna(station.get('Lat')) else 'N/A')
             with col_d4:
-                st.metric("Starting Date", station.get('Starting date', 'N/A'))
+                st.metric("Starting Date", str(station.get('Starting date', 'N/A')))
 
             st.markdown("---")
 
             # Row 2 (Type, Status, Lon, Last updated)
             col_d5, col_d6, col_d7, col_d8 = st.columns(4)
             with col_d5:
-                st.metric("Type", station.get('Type', 'N/A'))
+                st.metric("Type", str(station.get('Type', 'N/A')))
             with col_d6:
-                st.metric("Status", station.get('Status', 'N/A'))
+                st.metric("Status", str(station.get('Status', 'N/A')))
             with col_d7:
+                # Longitude formatting is numerical, so float check is okay
                 st.metric("Longitude", f"{station.get('Lon', 'N/A'):.4f}" if pd.notna(station.get('Lon')) else 'N/A')
             with col_d8:
-                st.metric("Last Updated", station.get('Last updated', 'N/A'))
+                st.metric("Last Updated", str(station.get('Last updated', 'N/A')))
             
             st.markdown("---")
             

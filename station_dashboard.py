@@ -8,7 +8,7 @@ import os
 import numpy as np 
 
 # --- FILE CONFIGURATION ---
-LOCATION_FILE = "Station information.xlsx" # UPDATED FILE NAME
+LOCATION_FILE = "station information.xlsx" # UPDATED FILE NAME
 DATA_FILE = "Data.xlsx"
 # --- END FILE CONFIGURATION ---
 
@@ -357,3 +357,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

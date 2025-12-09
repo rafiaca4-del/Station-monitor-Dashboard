@@ -7,7 +7,7 @@ from streamlit_folium import folium_static
 import os
 
 # --- FILE CONFIGURATION ---
-LOCATION_FILE = "Location.xlsx"
+LOCATION_FILE = "Location1.xlsx"
 DATA_FILE = "Data.xlsx" # Still referenced, but its data is not displayed per original request
 # --- END FILE CONFIGURATION ---
 
@@ -311,3 +311,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

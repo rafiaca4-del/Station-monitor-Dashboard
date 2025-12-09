@@ -24,7 +24,6 @@ st.markdown("""
     .main {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
-    /* Removed .stSidebar styles as it's no longer used */
     
     .station-card {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -57,7 +56,8 @@ st.markdown("""
     div[data-testid="stMetricValue"] {
         font-size: 1.2rem;
     }
-    /* 📌 CSS CHANGE 1: Reduce top gap (above st.title) */
+    
+    /* Global Streamlit UI Cleanup */
     .stApp > header {
         display: none; 
     }
@@ -66,28 +66,44 @@ st.markdown("""
         padding-bottom: 0rem;
         padding-left: 2rem;
         padding-right: 2rem;
-        
     }
     h1 {
         margin-top: 0rem !important;
         padding-top: 0rem !important;
     }
-
-    /* 📌 CSS CHANGE 2: Reduce gap above h3 (Station Locations) and center metric values */
-    h3 {
-        margin-top: 1rem !important; /* Reduced space after the separator */
-        margin-bottom: 0.5rem !important;
-    }
     div[data-testid="stMetric"] {
         text-align: center; 
     }
+
+    /* **************************************************
+    📌 KEY CHANGES FOR GAP REDUCTION (Station Locations & Station List)
+    **************************************************
+    */
+    /* Target the map title (h3) and reduce top margin significantly */
+    h3 {
+        margin-top: 0.5rem !important; /* Reduced from 1rem to 0.5rem */
+        margin-bottom: 0.5rem !important;
+    }
     
-    /* 📌 NEW CSS: Make the station list scrollable in the 40% column */
+    /* Target the Station List header (which is an h2 rendered by st.header) 
+       and reduce its top margin dramatically. The div structure is complex, 
+       but we can target the h2 style. */
+    h2 {
+        margin-top: 0.5rem !important; /* Reduce gap before Station List header */
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Target the parent container of the list for tighter packing */
+    div[data-testid="stVerticalBlock"] > div > div:nth-child(1) {
+        gap: 0.5rem; /* Reduces default Streamlit block spacing */
+    }
+
+    /* Make the station list scrollable in the 40% column */
     .station-list-container {
-        max-height: 80vh; /* Adjust height for the new column */
+        max-height: 80vh; 
         overflow-y: auto;
         padding-right: 15px;
-        padding-left: 5px; /* Added slight left padding */
+        padding-left: 5px; 
     }
 </style>
 """, unsafe_allow_html=True)
@@ -185,7 +201,7 @@ def create_map(stations_df):
 
 def render_station_list():
     """Renders the station list in the 40% column."""
-    st.header("🏢 Station List")
+    st.header("🏢 Station List") # Renders as <h2>, targeted by new CSS
     st.markdown("<div class='station-list-container'>", unsafe_allow_html=True)
     
     if st.session_state.stations_data is not None:
@@ -243,7 +259,6 @@ def main():
     # --- AUTOMATIC DATA LOADING END ---
 
     # 📌 NEW LAYOUT: 60% Map/Details (Left) and 40% Station List (Right)
-    # The weights are relative, so [6, 4] achieves the 60/40 split.
     col_main_content, col_station_list = st.columns([6, 4]) 
 
     # --- 40% COLUMN: Station List ---
@@ -273,13 +288,12 @@ def main():
             
             st.markdown("---")
             
-            # Map Header
+            # Map Header (h3, targeted by new CSS)
             st.markdown("<h3 style='text-align: center;'>📍 Station Locations</h3>", unsafe_allow_html=True)
             
             # Map Rendering
             station_map = create_map(st.session_state.stations_data)
             if station_map:
-                # Use height=600 to give the map a good vertical size
                 folium_static(station_map, width=None, height=600)
         
         else:

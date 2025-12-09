@@ -11,7 +11,7 @@ import numpy as np
 # 📌 Map/List Data Source (5 columns)
 LOCATION_FILE = "Location1.xlsx" 
 # 📌 Detail/Metrics Data Source (8 columns)
-DETAIL_FILE = "Station information.xlsx" 
+DETAIL_FILE = "station information.xlsx" 
 # Other data source
 DATA_FILE = "Data.xlsx"
 # --- END FILE CONFIGURATION ---
@@ -395,3 +395,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -283,7 +283,7 @@ def main():
         col_map_header_spacer, col_list_header = st.columns([3, 3]) # 50% / 50%
         
         with col_list_header:
-             st.markdown('<div class="list-title-container"><h2>🏢 Station List</h2></div>', unsafe_allow_html=True)
+             st.markdown('<div class="list-title-container"><h3>🏢 Station List</h3></div>', unsafe_allow_html=True)
     
         # Step 2: Main 50/16.67/16.67/16.67 content split
         col_main_content, col_list_1, col_list_2, col_list_3 = st.columns([3, 1, 1, 1]) 
@@ -376,6 +376,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

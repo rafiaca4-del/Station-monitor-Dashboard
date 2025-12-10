@@ -81,8 +81,8 @@ st.markdown("""
 
     /* KEY CHANGES FOR GAP REDUCTION */
     h3 {
-        margin-top: 1rem !important; 
-        margin-bottom: 1rem !important;
+        margin-top: 0.5rem !important; 
+        margin-bottom: 0.5rem !important;
     }
     h2 {
         margin-top: 0.5rem !important;
@@ -376,6 +376,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 

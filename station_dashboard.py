@@ -53,10 +53,22 @@ st.markdown("""
         font-size: 0.75em;
         font-weight: bold;
     }
+    
+    /* DEFAULT METRIC SIZE (For Map/List View) */
     div[data-testid="stMetricValue"] {
         font-size: 2rem;
     }
     
+    /* 🔑 KEY ADDITION: Targeted CSS for the Detail View Metrics */
+    .detail-metrics-container div[data-testid="stMetricValue"] {
+        font-size: 1.2rem; /* Reduced size for detail view values */
+        font-weight: bold;
+    }
+    .detail-metrics-container div[data-testid="stMetricLabel"] > div {
+        font-size: 0.7rem; /* Reduced size for detail view labels */
+        font-weight: normal;
+    }
+
     /* Global Streamlit UI Cleanup */
     .stApp > header {
         display: none; 
@@ -176,12 +188,21 @@ def create_map(stations_df):
     if stations_df is None or len(stations_df) == 0:
         return None
     
-    center_lat = stations_df['Lat'].mean()
-    center_lon = stations_df['Lon'].mean()
+    # Filter out NaNs for better centering
+    valid_stations = stations_df.dropna(subset=['Lat', 'Lon'])
+    
+    if len(valid_stations) == 0:
+        st.warning("No stations with valid latitude and longitude found to display on map.")
+        # Default to a safe location if no valid data
+        center_lat, center_lon, zoom = 0, 0, 2
+    else:
+        center_lat = valid_stations['Lat'].mean()
+        center_lon = valid_stations['Lon'].mean()
+        zoom = 7
     
     m = folium.Map(
         location=[center_lat, center_lon],
-        zoom_start=7, 
+        zoom_start=zoom, 
         tiles='OpenStreetMap'
     )
     
@@ -217,6 +238,7 @@ def render_list_column(df_slice, column):
             status = station.get('Status', 'Unknown')
             icon = get_station_icon(status)
             
+            # Using the station-card class for a visual effect
             if st.button(
                 f"{icon} {station_name}",
                 key=f"station_{idx}",
@@ -224,6 +246,7 @@ def render_list_column(df_slice, column):
             ):
                 # When clicked, select the full detail data based on Station Name
                 try:
+                    # Retrieve the row as a Series (which behaves like a dict)
                     st.session_state.selected_station = st.session_state.detail_data.loc[station_name]
                 except KeyError:
                     st.session_state.selected_station = None
@@ -233,6 +256,7 @@ def render_list_column(df_slice, column):
             
             st.caption(f"Adress: {adress}")
             
+            # Use appropriate status badge
             if status.lower() == 'active':
                 st.markdown('<span class="status-badge-active">Active</span>', unsafe_allow_html=True)
             elif status.lower() == 'dead':
@@ -283,7 +307,7 @@ def main():
         col_map_header_spacer, col_list_header = st.columns([3, 3]) # 50% / 50%
         
         with col_list_header:
-             st.markdown('<div class="list-title-container"><h3>🏢 Station List</h3></div>', unsafe_allow_html=True)
+              st.markdown('<div class="list-title-container"><h3>🏢 Station List</h3></div>', unsafe_allow_html=True)
     
         # Step 2: Main 50/16.67/16.67/16.67 content split
         col_main_content, col_list_1, col_list_2, col_list_3 = st.columns([3, 1, 1, 1]) 
@@ -321,7 +345,8 @@ def main():
             
             station_map = create_map(stations_df)
             if station_map:
-                folium_static(station_map, width=None, height=600)
+                # Set height to 450 to make space for the metrics and title
+                folium_static(station_map, width=None, height=450) 
     
     else:
         # ----------------------------------------------------------------------
@@ -340,6 +365,9 @@ def main():
                 st.rerun() 
             
             st.header(f"📊 {station.get('Station Name', 'Unknown Station')}")
+            
+            # 🔑 KEY ADDITION: Wrap the detail metrics in the container div
+            st.markdown("<div class='detail-metrics-container'>", unsafe_allow_html=True)
             
             # 📌 DETAIL METRICS LAYOUT (Showing all 8 requested fields from Station information.xlsx)
             
@@ -372,12 +400,9 @@ def main():
             
             st.markdown("---")
             
-            st.info("Data visualization and raw table views are currently hidden per request.")
+            # 🔑 KEY ADDITION: Close the container div
+            st.markdown("</div>", unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
     main()
-
-
-
-
-

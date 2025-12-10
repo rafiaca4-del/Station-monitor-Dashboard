@@ -59,9 +59,9 @@ st.markdown("""
         font-size: 2rem;
     }
     
-    /* 🔑 KEY ADDITION: Targeted CSS for the Detail View Metrics */
+    /* 🔑 KEY: Targeted CSS for the Detail View Metrics */
     .detail-metrics-container div[data-testid="stMetricValue"] {
-        font-size: .2rem; /* Reduced size for detail view values */
+        font-size: 1.2rem; /* Reduced size for detail view values */
         font-weight: bold;
     }
     .detail-metrics-container div[data-testid="stMetricLabel"] > div {
@@ -369,54 +369,50 @@ def main():
             # 🔑 KEY ADDITION: Wrap the detail metrics in the container div
             st.markdown("<div class='detail-metrics-container'>", unsafe_allow_html=True)
             
-            # 📌 DETAIL METRICS LAYOUT (Showing all 8 requested fields from Station information.xlsx)
+            # 📌 DETAIL METRICS LAYOUT (Now 4 Rows of 2 Columns)
             
-           # 📌 DETAIL METRICS LAYOUT (Showing all 8 requested fields from Station information.xlsx)
+            # Row 1 (Name, Adress)
+            col_d1, col_d2 = st.columns(2)
+            with col_d1:
+                # Robust string casting added to prevent TypeErrors
+                st.metric("Station Name", str(station.get('Station Name', 'N/A')))
+            with col_d2:
+                st.metric("Adress", str(station.get('Adress', 'N/A')))
+
+            st.markdown("---") 
+
+            # Row 2 (Lat, Starting date)
+            col_d3, col_d4 = st.columns(2)
+            with col_d3:
+                # Latitude formatting is numerical, so float check is okay
+                st.metric("Latitude", f"{station.get('Lat', 'N/A'):.4f}" if pd.notna(station.get('Lat')) else 'N/A')
+            with col_d4:
+                st.metric("Starting Date", str(station.get('Starting date', 'N/A')))
+
+            st.markdown("---") 
+
+            # Row 3 (Type, Status)
+            col_d5, col_d6 = st.columns(2)
+            with col_d5:
+                st.metric("Type", str(station.get('Type', 'N/A')))
+            with col_d6:
+                st.metric("Status", str(station.get('Status', 'N/A')))
             
-# Row 1 (Name, Adress)
-col_d1, col_d2 = st.columns(2)
-with col_d1:
-    # Robust string casting added to prevent TypeErrors
-    st.metric("Station Name", str(station.get('Station Name', 'N/A')))
-with col_d2:
-    st.metric("Adress", str(station.get('Adress', 'N/A')))
+            st.markdown("---") 
 
-st.markdown("---") # Separator between rows
-
-# Row 2 (Lat, Starting date)
-col_d3, col_d4 = st.columns(2)
-with col_d3:
-    # Latitude formatting is numerical, so float check is okay
-    st.metric("Latitude", f"{station.get('Lat', 'N/A'):.4f}" if pd.notna(station.get('Lat')) else 'N/A')
-with col_d4:
-    st.metric("Starting Date", str(station.get('Starting date', 'N/A')))
-
-st.markdown("---") # Separator between rows
-
-# Row 3 (Type, Status)
-col_d5, col_d6 = st.columns(2)
-with col_d5:
-    st.metric("Type", str(station.get('Type', 'N/A')))
-with col_d6:
-    st.metric("Status", str(station.get('Status', 'N/A')))
+            # Row 4 (Lon, Last updated)
+            col_d7, col_d8 = st.columns(2)
+            with col_d7:
+                # Longitude formatting is numerical, so float check is okay
+                st.metric("Longitude", f"{station.get('Lon', 'N/A'):.4f}" if pd.notna(station.get('Lon')) else 'N/A')
+            with col_d8:
+                st.metric("Last Updated", str(station.get('Last updated', 'N/A')))
             
-st.markdown("---") # Separator between rows
-
-# Row 4 (Lon, Last updated)
-col_d7, col_d8 = st.columns(2)
-with col_d7:
-    # Longitude formatting is numerical, so float check is okay
-    st.metric("Longitude", f"{station.get('Lon', 'N/A'):.4f}" if pd.notna(station.get('Lon')) else 'N/A')
-with col_d8:
-    st.metric("Last Updated", str(station.get('Last updated', 'N/A')))
-
-st.markdown("---") # Final separator
-
+            st.markdown("---")
+            
+            # 🔑 KEY ADDITION: Close the container div
+            st.markdown("</div>", unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
     main()
-
-
-
-

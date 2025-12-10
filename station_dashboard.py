@@ -371,34 +371,46 @@ def main():
             
             # 📌 DETAIL METRICS LAYOUT (Showing all 8 requested fields from Station information.xlsx)
             
-            # Row 1 (Name, Adress, Lat, Starting date)
-            col_d1, col_d2, col_d3, col_d4 = st.columns(4)
-            with col_d1:
-                # Robust string casting added to prevent TypeErrors
-                st.metric("Station Name", str(station.get('Station Name', 'N/A')))
-            with col_d2:
-                st.metric("Adress", str(station.get('Adress', 'N/A')))
-            with col_d3:
-                # Latitude formatting is numerical, so float check is okay
-                st.metric("Latitude", f"{station.get('Lat', 'N/A'):.4f}" if pd.notna(station.get('Lat')) else 'N/A')
-            with col_d4:
-                st.metric("Starting Date", str(station.get('Starting date', 'N/A')))
-
-            st.markdown("---")
-
-            # Row 2 (Type, Status, Lon, Last updated)
-            col_d5, col_d6, col_d7, col_d8 = st.columns(4)
-            with col_d5:
-                st.metric("Type", str(station.get('Type', 'N/A')))
-            with col_d6:
-                st.metric("Status", str(station.get('Status', 'N/A')))
-            with col_d7:
-                # Longitude formatting is numerical, so float check is okay
-                st.metric("Longitude", f"{station.get('Lon', 'N/A'):.4f}" if pd.notna(station.get('Lon')) else 'N/A')
-            with col_d8:
-                st.metric("Last Updated", str(station.get('Last updated', 'N/A')))
+           # 📌 DETAIL METRICS LAYOUT (Showing all 8 requested fields from Station information.xlsx)
             
-            st.markdown("---")
+# Row 1 (Name, Adress)
+col_d1, col_d2 = st.columns(2)
+with col_d1:
+    # Robust string casting added to prevent TypeErrors
+    st.metric("Station Name", str(station.get('Station Name', 'N/A')))
+with col_d2:
+    st.metric("Adress", str(station.get('Adress', 'N/A')))
+
+st.markdown("---") # Separator between rows
+
+# Row 2 (Lat, Starting date)
+col_d3, col_d4 = st.columns(2)
+with col_d3:
+    # Latitude formatting is numerical, so float check is okay
+    st.metric("Latitude", f"{station.get('Lat', 'N/A'):.4f}" if pd.notna(station.get('Lat')) else 'N/A')
+with col_d4:
+    st.metric("Starting Date", str(station.get('Starting date', 'N/A')))
+
+st.markdown("---") # Separator between rows
+
+# Row 3 (Type, Status)
+col_d5, col_d6 = st.columns(2)
+with col_d5:
+    st.metric("Type", str(station.get('Type', 'N/A')))
+with col_d6:
+    st.metric("Status", str(station.get('Status', 'N/A')))
+            
+st.markdown("---") # Separator between rows
+
+# Row 4 (Lon, Last updated)
+col_d7, col_d8 = st.columns(2)
+with col_d7:
+    # Longitude formatting is numerical, so float check is okay
+    st.metric("Longitude", f"{station.get('Lon', 'N/A'):.4f}" if pd.notna(station.get('Lon')) else 'N/A')
+with col_d8:
+    st.metric("Last Updated", str(station.get('Last updated', 'N/A')))
+
+st.markdown("---") # Final separator
             
             # 🔑 KEY ADDITION: Close the container div
             st.markdown("</div>", unsafe_allow_html=True)
@@ -406,5 +418,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 

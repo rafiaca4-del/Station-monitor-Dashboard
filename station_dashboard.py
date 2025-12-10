@@ -9,7 +9,7 @@ import numpy as np
 
 # --- FILE CONFIGURATION ---
 LOCATION_FILE = "Location1.xlsx" 
-DETAIL_FILE = "station information1.xlsx" 
+DETAIL_FILE = "station information2.xlsx" 
 # --- END FILE CONFIGURATION ---
 
 st.set_page_config(
@@ -406,4 +406,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

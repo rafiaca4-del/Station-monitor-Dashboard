@@ -61,7 +61,7 @@ st.markdown("""
     
     /* 🔑 KEY ADDITION: Targeted CSS for the Detail View Metrics */
     .detail-metrics-container div[data-testid="stMetricValue"] {
-        font-size: 1.2rem; /* Reduced size for detail view values */
+        font-size: .2rem; /* Reduced size for detail view values */
         font-weight: bold;
     }
     .detail-metrics-container div[data-testid="stMetricLabel"] > div {
@@ -406,3 +406,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

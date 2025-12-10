@@ -9,7 +9,7 @@ import numpy as np
 
 # --- FILE CONFIGURATION ---
 LOCATION_FILE = "Location1.xlsx" 
-DETAIL_FILE = "station information2.xlsx" 
+DETAIL_FILE = "station information1.xlsx" 
 # --- END FILE CONFIGURATION ---
 
 st.set_page_config(
@@ -59,7 +59,7 @@ st.markdown("""
         font-size: 2rem;
     }
     
-    /* 🔑 KEY: Targeted CSS for the Detail View Metrics */
+    /* 🔑 KEY: Targeted CSS for the Detail View Metrics (Smaller Text) */
     .detail-metrics-container div[data-testid="stMetricValue"] {
         font-size: 1.2rem; /* Reduced size for detail view values */
         font-weight: bold;
@@ -174,8 +174,6 @@ def load_detail_data(filepath):
     except Exception as e:
         st.error(f"Error loading detail data from {filepath}: {e}")
         return None
-
-# load_data_file function removed
 
 def get_station_icon(status):
     """Return emoji icon based on status"""
@@ -356,6 +354,20 @@ def main():
         # We use a single full-width column for the details.
         col_full_width = st.columns(1)[0]
         
+        # --- Date Formatting and Logic Helper ---
+        today_date_str = datetime.now().strftime("%Y-%m-%d")
+        
+        def format_date(date_data, default_if_na=None):
+            """Formats date data to YYYY-MM-DD, handling NaT/NaN or returning default."""
+            if pd.notna(date_data):
+                try:
+                    # Handle both datetime objects and strings that might include time
+                    return pd.to_datetime(date_data).strftime("%Y-%m-%d")
+                except:
+                    return str(date_data) # Fallback if conversion fails
+            return default_if_na if default_if_na is not None else 'N/A'
+        # ----------------------------------------
+
         with col_full_width:
             station = st.session_state.selected_station
             
@@ -369,44 +381,49 @@ def main():
             # 🔑 KEY ADDITION: Wrap the detail metrics in the container div
             st.markdown("<div class='detail-metrics-container'>", unsafe_allow_html=True)
             
-            # 📌 DETAIL METRICS LAYOUT (Now 4 Rows of 2 Columns)
+            # 📌 NEW DETAIL METRICS LAYOUT (5 Rows with 1 or 2 Columns)
             
-            # Row 1 (Name, Adress)
-            col_d1, col_d2 = st.columns(2)
+            # Row 1 (Station Name - 1 column)
+            col_d1 = st.columns(1)[0]
             with col_d1:
-                # Robust string casting added to prevent TypeErrors
                 st.metric("Station Name", str(station.get('Station Name', 'N/A')))
+
+            st.markdown("---") 
+
+            # Row 2 (Adress - 1 column)
+            col_d2 = st.columns(1)[0]
             with col_d2:
                 st.metric("Adress", str(station.get('Adress', 'N/A')))
 
             st.markdown("---") 
 
-            # Row 2 (Lat, Starting date)
-            col_d3, col_d4 = st.columns(2)
+            # Row 3 (Type - 1 column)
+            col_d3 = st.columns(1)[0]
             with col_d3:
+                st.metric("Type", str(station.get('Type', 'N/A')))
+
+            st.markdown("---") 
+
+            # Row 4 (Lat, Lon - 2 columns)
+            col_d4, col_d5 = st.columns(2)
+            with col_d4:
                 # Latitude formatting is numerical, so float check is okay
                 st.metric("Latitude", f"{station.get('Lat', 'N/A'):.4f}" if pd.notna(station.get('Lat')) else 'N/A')
-            with col_d4:
-                st.metric("Starting Date", str(station.get('Starting date', 'N/A')))
-
-            st.markdown("---") 
-
-            # Row 3 (Type, Status)
-            col_d5, col_d6 = st.columns(2)
             with col_d5:
-                st.metric("Type", str(station.get('Type', 'N/A')))
-            with col_d6:
-                st.metric("Status", str(station.get('Status', 'N/A')))
-            
-            st.markdown("---") 
-
-            # Row 4 (Lon, Last updated)
-            col_d7, col_d8 = st.columns(2)
-            with col_d7:
                 # Longitude formatting is numerical, so float check is okay
                 st.metric("Longitude", f"{station.get('Lon', 'N/A'):.4f}" if pd.notna(station.get('Lon')) else 'N/A')
-            with col_d8:
-                st.metric("Last Updated", str(station.get('Last updated', 'N/A')))
+
+            st.markdown("---") 
+
+            # Row 5 (Starting Date, Last Updated - 2 columns)
+            col_d6, col_d7 = st.columns(2)
+            with col_d6:
+                starting_date_str = format_date(station.get('Starting date'))
+                st.metric("Starting Date", starting_date_str)
+            with col_d7:
+                # If Last Updated is missing/NaN, use today's date
+                last_updated_str = format_date(station.get('Last updated'), default_if_na=today_date_str)
+                st.metric("Last Updated", last_updated_str)
             
             st.markdown("---")
             

@@ -411,13 +411,12 @@ with col_d8:
     st.metric("Last Updated", str(station.get('Last updated', 'N/A')))
 
 st.markdown("---") # Final separator
-            
-            # 🔑 KEY ADDITION: Close the container div
-            st.markdown("</div>", unsafe_allow_html=True)
+
 
 
 if __name__ == "__main__":
     main()
+
 
 
 
